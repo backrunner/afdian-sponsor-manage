@@ -1,0 +1,61 @@
+{
+  "name": "afdian-sponsor-manage",
+  "version": "1.0.0",
+  "description": "爱发电赞助者管理服务",
+  "egg": {
+    "typescript": true,
+    "declarations": true
+  },
+  "scripts": {
+    "start": "egg-scripts start --daemon --title=egg-server-afdian-sponsor-manage",
+    "stop": "egg-scripts stop --title=egg-server-afdian-sponsor-manage",
+    "dev": "egg-bin dev",
+    "debug": "egg-bin debug",
+    "tsc": "ets && tsc -p tsconfig.json",
+    "lint": "eslint . --ext .ts",
+    "ets": "ets",
+    "clean": "ets clean",
+    "f2elint-scan": "f2elint scan",
+    "f2elint-fix": "f2elint fix"
+  },
+  "dependencies": {
+    "afdian-api": "^1.0.3",
+    "egg": "^2.30.0",
+    "egg-cors": "^2.2.3",
+    "egg-logrotator": "^3.1.0",
+    "egg-schedule": "^3.6.6",
+    "egg-scripts": "^2.15.1",
+    "egg-security": "^2.9.0",
+    "egg-sequelize": "^6.0.0",
+    "egg-validate": "^2.0.2",
+    "leveldown": "^6.1.0",
+    "levelup": "^5.1.1",
+    "mysql2": "^2.3.0",
+    "sequelize": "^6.6.5"
+  },
+  "devDependencies": {
+    "@types/leveldown": "^4.0.3",
+    "@types/levelup": "^4.3.3",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.10.3",
+    "@types/supertest": "^2.0.11",
+    "autod": "^3.1.1",
+    "autod-egg": "^1.1.0",
+    "egg-bin": "^4.16.4",
+    "egg-ci": "^1.19.0",
+    "egg-mock": "^4.1.0",
+    "f2elint": "^1.2.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backrunner/afdian-sponsor-manage.git"
+  },
+  "homepage": "https://github.com/backrunner/afdian-sponsor-manage",
+  "author": "BackRunner",
+  "license": "MIT"
+}
