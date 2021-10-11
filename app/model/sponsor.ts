@@ -34,7 +34,7 @@ export default (app: Application) => {
     },
   });
 
-  Sponsor.sync();
+  Sponsor.sync({ alter: true });
 
   return Sponsor;
 };

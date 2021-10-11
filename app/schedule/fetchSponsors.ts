@@ -4,12 +4,12 @@ import Afdian from 'afdian-api';
 import { Subscription } from '../../typings/app';
 import { sleep } from '../../utils';
 
-export default class FetchAfdian extends Subscription {
+export default class FetchSponsors extends Subscription {
 
   static get schedule() {
     return {
       interval: '1h',
-      type: 'all',
+      type: 'worker',
     };
   }
 
