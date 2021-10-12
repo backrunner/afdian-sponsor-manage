@@ -3,12 +3,13 @@ import { AfdianSponsorInfo, AfdianSponsorResponse } from 'afdian-api/dist/src/ty
 import Afdian from 'afdian-api';
 import { Subscription } from '../../typings/app';
 import { sleep } from '../../utils';
+import { taskIntervals } from '../../config/task';
 
 export default class FetchSponsors extends Subscription {
 
   static get schedule() {
     return {
-      interval: '1h',
+      interval: taskIntervals.fetchSponsors,
       type: 'worker',
     };
   }
@@ -61,5 +62,6 @@ export default class FetchSponsors extends Subscription {
       token,
     });
     await this.fetchSponsors(afdian);
+    await this.ctx.app.level.put('sponsor-update-time', Date.now());
   }
 }

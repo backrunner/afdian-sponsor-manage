@@ -1,5 +1,6 @@
 import levelup from 'levelup';
 import leveldown from 'leveldown';
+import encoding from 'encoding-down';
 import path from 'path';
 import fs from 'fs';
 
@@ -9,6 +10,6 @@ if (!fs.existsSync(DB_PATH)) {
   fs.mkdirSync(DB_PATH);
 }
 
-const level = levelup(leveldown(DB_PATH));
+const level = levelup(encoding(leveldown(DB_PATH)));
 
 export default level;

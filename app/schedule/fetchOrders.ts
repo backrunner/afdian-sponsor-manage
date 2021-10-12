@@ -3,24 +3,33 @@ import { AfdianOrderInfo, AfdianOrderResponse } from 'afdian-api/dist/src/types/
 import Afdian from 'afdian-api';
 import { Subscription } from '../../typings/app';
 import { sleep } from '../../utils';
+import { taskIntervals } from '../../config/task';
+import moment from 'moment';
 
 export default class FetchOrders extends Subscription {
-  static get schedue() {
+  static get schedule() {
     return {
-      interval: '1d',
+      interval: taskIntervals.fetchOrders,
       type: 'worker',
     };
   }
 
   async updateOrders(orders: AfdianOrderInfo[]) {
     const { ctx } = this;
-    const transformed = orders.map(item => ({
-      trade_no: item.out_trade_no,
-      user_id: item.user_id,
-      plan_id: item.plan_id,
-      month: item.month,
-      total_amount: item.total_amount,
-    }));
+    const transformed = orders.map((item) => {
+      const { out_trade_no: tradeNo } = item;
+      // e.g.: 202110122117524810199520801
+      const time = tradeNo.substr(0, 14);
+      const payTime = moment(time, 'YYYYMMDDHHmmss').valueOf();
+      return {
+        trade_no: tradeNo,
+        user_id: item.user_id,
+        plan_id: item.plan_id,
+        month: item.month,
+        total_amount: item.total_amount,
+        pay_time: payTime,
+      };
+    });
     await ctx.model.order.bulkCreate(transformed, {
       updateOnDuplicate: ['trade_no'],
     });

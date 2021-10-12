@@ -20,6 +20,9 @@ export default (app: Application) => {
     total_amount: {
       type: STRING,
     },
+    pay_time: {
+      type: INTEGER,
+    },
   });
 
   Order.sync({ alter: true });

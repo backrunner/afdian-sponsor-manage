@@ -2,10 +2,12 @@
 // Do not modify this file!!!!!!!!!
 
 import 'egg';
-import ExportSponsor from '../../../app/controller/sponsor';
+import ExportAfdianManage from '../../../app/controller/afdianManage';
+import ExportWebhook from '../../../app/controller/webhook';
 
 declare module 'egg' {
   interface IController {
-    sponsor: ExportSponsor;
+    afdianManage: ExportAfdianManage;
+    webhook: ExportWebhook;
   }
 }
