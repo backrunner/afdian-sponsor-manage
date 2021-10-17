@@ -30,7 +30,7 @@ export default class FetchOrders extends Subscription {
         pay_time: payTime,
       };
     });
-    await ctx.model.order.bulkCreate(transformed, {
+    await ctx.model.Order.bulkCreate(transformed, {
       updateOnDuplicate: ['trade_no'],
     });
   }

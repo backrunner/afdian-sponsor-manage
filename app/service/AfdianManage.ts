@@ -1,3 +1,4 @@
+import { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
 import { Service } from 'egg';
 import moment from 'moment';
 import { transformResult, transformResults } from '../../utils';
@@ -48,15 +49,17 @@ export default class AfdianManageService extends Service {
       .minute(59)
       .second(59)
       .valueOf();
-    const res = transformResult<{ total: number }>(await ctx.model.Order.findOne({
-      attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
-      where: {
-        pay_time: {
-          [gt]: start,
-          [lte]: end,
+    const res = transformResult<{ total: number }>(
+      await ctx.model.Order.findOne({
+        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
+        where: {
+          pay_time: {
+            [gt]: start,
+            [lte]: end,
+          },
         },
-      },
-    }));
+      }),
+    );
     if (!res) {
       throw new Error('No result');
     }
@@ -69,14 +72,34 @@ export default class AfdianManageService extends Service {
     if (cached) {
       return cached;
     }
-    const res = transformResult<{ total: number }>(await ctx.model.Order.findOne({
-      attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
-    }));
+    const res = transformResult<{ total: number }>(
+      await ctx.model.Order.findOne({
+        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
+      }),
+    );
     if (!res) {
       throw new Error('No result');
     }
     ctx.app.cache.set('total-sum', res.total);
     return res.total;
+  }
+  async updateOrder(order: AfdianOrderInfo) {
+    const { ctx } = this;
+    const { out_trade_no: tradeNo } = order;
+    // e.g.: 202110122117524810199520801
+    const time = tradeNo.substr(0, 14);
+    const payTime = moment(time, 'YYYYMMDDHHmmss').valueOf();
+    const transformed = {
+      trade_no: tradeNo,
+      user_id: order.user_id,
+      plan_id: order.plan_id,
+      month: order.month,
+      total_amount: order.total_amount,
+      pay_time: payTime,
+    };
+    await await ctx.model.Sponsor.bulkCreate([transformed], {
+      updateOnDuplicate: ['user_id'],
+    });
   }
   // 获得当月发电赞助者（不含长期）
   async getMonthSponsors(month: number): Promise<SponsorInfo[]> {
@@ -101,17 +124,19 @@ export default class AfdianManageService extends Service {
       .valueOf();
     const end = now.subtract(diff, 'month').endOf('month').hour(23).minute(59).second(59).valueOf();
     const { ne } = ctx.app.Sequelize.Op;
-    const sponsors = transformResults<SponsorInfo>(await ctx.model.Sponsor.findAll({
-      where: {
-        current_plan_id: {
-          [ne]: null,
+    const sponsors = transformResults<SponsorInfo>(
+      await ctx.model.Sponsor.findAll({
+        where: {
+          current_plan_id: {
+            [ne]: null,
+          },
+          last_pay_time: {
+            [gt]: start,
+            [lte]: end,
+          },
         },
-        last_pay_time: {
-          [gt]: start,
-          [lte]: end,
-        },
-      },
-    }));
+      }),
+    );
     ctx.app.cache.set('current-sponsor', sponsors);
     return sponsors;
   }
@@ -131,7 +156,7 @@ export default class AfdianManageService extends Service {
           },
         },
         raw: true,
-      })
+      }),
     ).map((item) => {
       const { last_pay_time } = item;
       const now = moment();
