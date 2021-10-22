@@ -8,9 +8,21 @@ export default class AfdianManageController extends Controller {
     const { ctx } = this;
     const sponsors = await ctx.service.afdianManage.getCurrentSponsors();
     const now = moment();
-    const lastMonthSum = await ctx.service.afdianManage.getMonthSum(now.subtract(1, 'month').month());
+    const lastMonthSum = await ctx.service.afdianManage.getMonthSum(
+      now.subtract(1, 'month').month(),
+    );
     const currentMonthSum = await ctx.service.afdianManage.getMonthSum(now.month());
     const totalSum = await ctx.service.afdianManage.getTotalSum();
+    const { time: lastFetchSponsorTime } = JSON.parse(
+      (await ctx.app.redis.get('last-fetch-sponsor-time')) || '{}',
+    );
+    const { time: lastFetchOrderTime } = JSON.parse(
+      (await ctx.app.redis.get('last-fetch-order-time')) || '{}',
+    );
+    const lastUpdateTime =
+      lastFetchSponsorTime && lastFetchOrderTime
+        ? Math.max(lastFetchOrderTime, lastFetchSponsorTime)
+        : lastFetchOrderTime || lastFetchSponsorTime;
     return R.success({
       sponsors,
       amount: {
@@ -21,6 +33,7 @@ export default class AfdianManageController extends Controller {
       count: {
         current_month: 0,
       },
+      last_update_time: lastUpdateTime,
     });
   }
   // 获取所有赞助者

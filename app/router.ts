@@ -5,4 +5,6 @@ export default (app: Application) => {
 
   router.get('/current', controller.afdianManage.getCurrentStatus);
   router.get('/allSponsors', controller.afdianManage.getAllSponsors);
+
+  router.post('/webhook', controller.webhook.handleOrder);
 };

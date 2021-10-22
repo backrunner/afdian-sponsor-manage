@@ -1,12 +1,11 @@
 /* eslint-disable no-await-in-loop */
 import { AfdianSponsorInfo, AfdianSponsorResponse } from 'afdian-api/dist/src/types/request';
 import Afdian from 'afdian-api';
-import { Subscription } from '../../typings/app';
+import { Subscription } from 'egg';
 import { sleep } from '../../utils';
 import { taskIntervals } from '../../config/task';
 
 export default class FetchSponsors extends Subscription {
-
   static get schedule() {
     return {
       interval: taskIntervals.fetchSponsors,
@@ -16,7 +15,7 @@ export default class FetchSponsors extends Subscription {
 
   async updateSponsors(sponsors: AfdianSponsorInfo[]) {
     const { ctx } = this;
-    const transformed = sponsors.map(item => ({
+    const transformed = sponsors.map((item) => ({
       user_id: item.user.user_id,
       name: item.user.name,
       avatar: item.user.avatar,
@@ -48,9 +47,11 @@ export default class FetchSponsors extends Subscription {
       // 1秒发一个包，避免QPS过高出错
       await sleep(1000);
     }
-    const sponsors = [...firstRes.data.list].concat(pageRes.reduce((res, curr) => {
-      return res.concat(curr.data.list);
-    }, new Array<AfdianSponsorInfo>()));
+    const sponsors = [...firstRes.data.list].concat(
+      pageRes.reduce((res, curr) => {
+        return res.concat(curr.data.list);
+      }, new Array<AfdianSponsorInfo>()),
+    );
     await this.updateSponsors(sponsors);
   }
 
@@ -62,6 +63,11 @@ export default class FetchSponsors extends Subscription {
       token,
     });
     await this.fetchSponsors(afdian);
-    await this.ctx.app.level.put('sponsor-update-time', Date.now());
+    await ctx.app.redis.set(
+      'last-fetch-sponsor-time',
+      JSON.stringify({
+        time: Date.now(),
+      }),
+    );
   }
 }

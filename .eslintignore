@@ -5,3 +5,7 @@ dist/
 **/*-min.js
 **/*.bundle.js
 typings/
+app/**/*.js
+test/**/*.js
+config/**/*.js
+utils/**/*.js

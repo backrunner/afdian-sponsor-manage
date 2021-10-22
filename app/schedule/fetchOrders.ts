@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { AfdianOrderInfo, AfdianOrderResponse } from 'afdian-api/dist/src/types/request';
 import Afdian from 'afdian-api';
-import { Subscription } from '../../typings/app';
+import { Subscription } from 'egg';
 import { sleep } from '../../utils';
 import { taskIntervals } from '../../config/task';
 import moment from 'moment';
@@ -49,9 +49,11 @@ export default class FetchOrders extends Subscription {
       // 1秒发一个包，避免QPS过高出错
       await sleep(1000);
     }
-    const orders = [...firstRes.data.list].concat(pageRes.reduce((res, curr) => {
-      return res.concat(curr.data.list);
-    }, new Array<AfdianOrderInfo>()));
+    const orders = [...firstRes.data.list].concat(
+      pageRes.reduce((res, curr) => {
+        return res.concat(curr.data.list);
+      }, new Array<AfdianOrderInfo>()),
+    );
     await this.updateOrders(orders);
   }
 
@@ -63,5 +65,11 @@ export default class FetchOrders extends Subscription {
       token,
     });
     await this.fetchOrders(afdian);
+    await ctx.app.redis.set(
+      'last-fetch-order-time',
+      JSON.stringify({
+        time: Date.now(),
+      }),
+    );
   }
 }

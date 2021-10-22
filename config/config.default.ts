@@ -4,6 +4,10 @@ export default (appInfo: EggAppInfo) => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const config = {} as PowerPartial<EggAppConfig>;
 
+  config.cluster = {
+    hostname: '127.0.0.1',
+  };
+
   config.keys = `${appInfo.name}_1633789077018_3908`;
 
   config.cors = {
@@ -57,9 +61,11 @@ export default (appInfo: EggAppInfo) => {
   config.sequelize = {
     dialect: 'mysql',
     dialectOptions: {
-      charset: 'utf8mb4_unicode',
+      charset: 'utf8mb4',
     },
     define: {
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci',
       paranoid: false,
       underscored: true,
       freezeTableName: true,

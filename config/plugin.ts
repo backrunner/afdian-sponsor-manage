@@ -1,7 +1,9 @@
 import { EggPlugin } from 'egg';
 
 const plugin: EggPlugin = {
-  static: false,
+  static: {
+    enable: false,
+  },
   cors: {
     enable: true,
     package: 'egg-cors',
@@ -13,6 +15,10 @@ const plugin: EggPlugin = {
   validate: {
     enable: true,
     package: 'egg-validate',
+  },
+  redis: {
+    enable: true,
+    package: 'egg-redis',
   },
 };
 

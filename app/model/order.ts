@@ -1,4 +1,4 @@
-import { Application } from '../../typings/app';
+import { Application } from 'egg';
 
 export default (app: Application) => {
   const { STRING, INTEGER } = app.Sequelize;

@@ -10,10 +10,10 @@ logs/
 *.swp
 *.lock
 !.autod.conf.js
-leveldb
 app/**/*.js
 test/**/*.js
 config/**/*.js
+utils/**/*.js
 app/**/*.map
 test/**/*.map
 config/**/*.map

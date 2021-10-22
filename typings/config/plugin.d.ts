@@ -16,6 +16,7 @@ import 'egg-view';
 import 'egg-cors';
 import 'egg-sequelize';
 import 'egg-validate';
+import 'egg-redis';
 import { EggPluginItem } from 'egg';
 declare module 'egg' {
   interface EggPlugin {
@@ -34,5 +35,6 @@ declare module 'egg' {
     cors?: EggPluginItem;
     sequelize?: EggPluginItem;
     validate?: EggPluginItem;
+    redis?: EggPluginItem;
   }
 }

@@ -1,5 +1,5 @@
 import { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
-import { Controller } from '../../typings/app';
+import { Controller } from 'egg';
 
 export default class WebhookController extends Controller {
   async handleOrder() {
