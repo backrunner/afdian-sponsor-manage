@@ -39,8 +39,6 @@
   },
   "devDependencies": {
     "@types/encoding-down": "^5.0.0",
-    "@types/leveldown": "^4.0.3",
-    "@types/levelup": "^4.3.3",
     "@types/lru-cache": "^5.1.1",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.3",
