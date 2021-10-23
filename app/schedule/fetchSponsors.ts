@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { AfdianSponsorInfo, AfdianSponsorResponse } from 'afdian-api/dist/src/types/request';
 import Afdian from 'afdian-api';
+import moment from 'moment';
 import { Subscription } from 'egg';
 import { sleep } from '../../utils';
 import { taskIntervals } from '../../config/task';
@@ -15,17 +16,29 @@ export default class FetchSponsors extends Subscription {
 
   async updateSponsors(sponsors: AfdianSponsorInfo[]) {
     const { ctx } = this;
-    const transformed = sponsors.map((item) => ({
-      user_id: item.user.user_id,
-      name: item.user.name,
-      avatar: item.user.avatar,
-      first_pay_time: item.first_pay_time,
-      last_pay_time: item.last_pay_time,
-      all_sum_amount: item.all_sum_amount,
-      current_plan_id: item.current_plan.plan_id,
-      current_plan_name: item.current_plan.name,
-      current_plan_price: item.current_plan.price,
-    }));
+    const transformed = sponsors.map((item) => {
+      const currentPayExpire = moment
+        .unix(item.last_pay_time)
+        .add(item.current_plan.pay_month - 1, 'month')
+        .endOf('month')
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .unix();
+      return {
+        user_id: item.user.user_id,
+        name: item.user.name,
+        avatar: item.user.avatar,
+        first_pay_time: item.first_pay_time,
+        last_pay_time: item.last_pay_time,
+        all_sum_amount: item.all_sum_amount,
+        current_plan_id: item.current_plan.plan_id,
+        current_plan_name: item.current_plan.name,
+        current_plan_price: item.current_plan.price,
+        current_pay_month: item.current_plan.pay_month,
+        current_pay_expire: currentPayExpire,
+      };
+    });
     await ctx.model.Sponsor.bulkCreate(transformed, {
       updateOnDuplicate: ['user_id'],
     });
@@ -57,7 +70,7 @@ export default class FetchSponsors extends Subscription {
 
   async subscribe() {
     const { ctx } = this;
-    const { userId, token } = ctx.app.config;
+    const { userId, token } = ctx.app.config.afdian;
     const afdian = new Afdian({
       userId,
       token,

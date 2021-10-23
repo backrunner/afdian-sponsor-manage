@@ -20,14 +20,25 @@ export default class FetchOrders extends Subscription {
       const { out_trade_no: tradeNo } = item;
       // e.g.: 202110122117524810199520801
       const time = tradeNo.substr(0, 14);
-      const payTime = moment(time, 'YYYYMMDDHHmmss').valueOf();
+      // 付费时间
+      const payTime = moment(time, 'YYYYMMDDHHmmss').unix();
+      // 订单过期时间
+      const expireTime = moment(time, 'YYYYMMDDHHmmss')
+        .add(item.month - 1, 'month')
+        .endOf('month')
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .unix();
       return {
         trade_no: tradeNo,
         user_id: item.user_id,
         plan_id: item.plan_id,
         month: item.month,
+        amount: `${(parseFloat(item.total_amount) / item.month).toFixed(2)}`,
         total_amount: item.total_amount,
         pay_time: payTime,
+        expire_time: expireTime,
       };
     });
     await ctx.model.Order.bulkCreate(transformed, {
@@ -59,7 +70,7 @@ export default class FetchOrders extends Subscription {
 
   async subscribe() {
     const { ctx } = this;
-    const { userId, token } = ctx.app.config;
+    const { userId, token } = ctx.app.config.afdian;
     const afdian = new Afdian({
       userId,
       token,

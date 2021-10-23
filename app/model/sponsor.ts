@@ -1,9 +1,10 @@
 import { Application } from 'egg';
+import { INTEGER } from 'sequelize';
 
 export default (app: Application) => {
-  const { STRING, INTEGER } = app.Sequelize;
+  const { STRING, BIGINT } = app.Sequelize;
 
-  const Sponsor = app.model.define('sponsor', {
+  const Sponsor: any = app.model.define('sponsor', {
     user_id: {
       type: STRING,
       primaryKey: true,
@@ -15,10 +16,10 @@ export default (app: Application) => {
       type: STRING(2048),
     },
     first_pay_time: {
-      type: INTEGER,
+      type: BIGINT,
     },
     last_pay_time: {
-      type: INTEGER,
+      type: BIGINT,
     },
     all_sum_amount: {
       type: STRING,
@@ -32,7 +33,17 @@ export default (app: Application) => {
     current_plan_price: {
       type: STRING,
     },
+    current_pay_month: {
+      type: INTEGER,
+    },
+    current_pay_expire: {
+      type: INTEGER,
+    },
   });
+
+  Sponsor.associate = function () {
+    app.model.Sponsor.hasMany(app.model.Order, { foreignKey: 'user_id', constraints: false });
+  }
 
   Sponsor.sync({ alter: true });
 

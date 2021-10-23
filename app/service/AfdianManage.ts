@@ -21,7 +21,7 @@ interface SponsorInfo {
 }
 
 export default class AfdianManageService extends Service {
-  // 当月发电额
+  // 当月发电额（按可提取计算）
   async getMonthSum(month: number): Promise<number> {
     const { ctx } = this;
     const now = moment();
@@ -34,30 +34,26 @@ export default class AfdianManageService extends Service {
     if (diff < 0) {
       return 0;
     }
-    const { gt, lte } = ctx.app.Sequelize.Op;
-    const start = moment()
-      .subtract(diff, 'month')
-      .startOf('month')
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .valueOf();
+    const { lte, gte } = ctx.app.Sequelize.Op;
     const end = moment()
       .subtract(diff, 'month')
       .endOf('month')
       .hour(23)
       .minute(59)
       .second(59)
-      .valueOf();
+      .unix();
     const res = transformResult<{ total: number }>(
       await ctx.model.Order.findOne({
-        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
+        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('amount')), 'total']],
         where: {
+          expire_time: {
+            [gte]: end,
+          },
           pay_time: {
-            [gt]: start,
             [lte]: end,
           },
         },
+        raw: false,
       }),
     );
     if (!res) {
@@ -89,15 +85,24 @@ export default class AfdianManageService extends Service {
     // e.g.: 202110122117524810199520801
     const time = tradeNo.substr(0, 14);
     const payTime = moment(time, 'YYYYMMDDHHmmss').valueOf();
+    const expireTime = moment(time, 'YYYYMMDDHHmmss')
+        .add(order.month - 1, 'month')
+        .endOf('month')
+        .hour(23)
+        .minute(59)
+        .second(59)
+        .unix();
     const transformed = {
       trade_no: tradeNo,
       user_id: order.user_id,
       plan_id: order.plan_id,
       month: order.month,
+      amount: `${parseFloat(order.total_amount) / order.month}`,
       total_amount: order.total_amount,
       pay_time: payTime,
+      expire_time: expireTime,
     };
-    await await ctx.model.Sponsor.bulkCreate([transformed], {
+    await ctx.model.Sponsor.bulkCreate([transformed], {
       updateOnDuplicate: ['user_id'],
     });
   }
@@ -114,27 +119,21 @@ export default class AfdianManageService extends Service {
     if (diff < 0) {
       return [];
     }
-    const { gt, lte } = ctx.app.Sequelize.Op;
-    const start = now
-      .subtract(diff, 'month')
-      .startOf('month')
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .valueOf();
-    const end = now.subtract(diff, 'month').endOf('month').hour(23).minute(59).second(59).valueOf();
-    const { ne } = ctx.app.Sequelize.Op;
+    const { lte, gte } = ctx.app.Sequelize.Op;
+    const end = moment().subtract(diff, 'month').endOf('month').hour(23).minute(59).second(59).unix();
     const sponsors = transformResults<SponsorInfo>(
       await ctx.model.Sponsor.findAll({
-        where: {
-          current_plan_id: {
-            [ne]: null,
+        include: [{
+          model: ctx.model.Order,
+          where: {
+            expire_time: {
+              [gte]: end,
+            },
+            pay_time: {
+              [lte]: end,
+            },
           },
-          last_pay_time: {
-            [gt]: start,
-            [lte]: end,
-          },
-        },
+        }],
       }),
     );
     ctx.app.cache.set('current-sponsor', sponsors);
@@ -155,17 +154,16 @@ export default class AfdianManageService extends Service {
             [ne]: null,
           },
         },
-        raw: true,
+        raw: false,
       }),
     ).map((item) => {
       const { last_pay_time } = item;
-      const now = moment();
-      const start = now.startOf('month').hour(0).minute(0).second(0).valueOf();
-      const end = now.endOf('month').hour(23).minute(59).second(59).valueOf();
-      const current_month_sponsor = last_pay_time >= start && last_pay_time < end;
+      const start = moment().startOf('month').hour(0).minute(0).second(0).unix();
+      const end = moment().endOf('month').hour(23).minute(59).second(59).unix();
+      const current_month_pay = last_pay_time >= start && last_pay_time < end;
       return {
         ...item,
-        current_month_sponsor,
+        current_month_pay,
       };
     });
     ctx.app.cache.set('current-sponsor', sponsors);

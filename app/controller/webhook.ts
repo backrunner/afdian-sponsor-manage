@@ -6,7 +6,7 @@ export default class WebhookController extends Controller {
     const { ctx } = this;
     const orderInfo: AfdianOrderInfo = ctx.request.body;
     await ctx.service.afdianManage.updateOrder(orderInfo);
-    return {
+    ctx.body = {
       ec: 200,
     };
   }

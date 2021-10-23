@@ -1,9 +1,9 @@
 import { Application } from 'egg';
 
 export default (app: Application) => {
-  const { STRING, INTEGER } = app.Sequelize;
+  const { STRING, BIGINT } = app.Sequelize;
 
-  const Order = app.model.define('order', {
+  const Order: any = app.model.define('order', {
     trade_no: {
       type: STRING,
       primaryKey: true,
@@ -15,15 +15,25 @@ export default (app: Application) => {
       type: STRING,
     },
     month: {
-      type: INTEGER,
+      type: BIGINT,
+    },
+    amount: {
+      type: STRING,
     },
     total_amount: {
       type: STRING,
     },
     pay_time: {
-      type: INTEGER,
+      type: BIGINT,
+    },
+    expire_time: {
+      type: BIGINT,
     },
   });
+
+  Order.associate = function () {
+    app.model.Order.belongsTo(app.model.Sponsor, { foreignKey: 'user_id',  constraints: false });
+  }
 
   Order.sync({ alter: true });
 

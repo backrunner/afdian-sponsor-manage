@@ -1,4 +1,4 @@
 export const taskIntervals = {
-  fetchOrders: '1d',
+  fetchOrders: '1h',
   fetchSponsors: '1h',
 };
