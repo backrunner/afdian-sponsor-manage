@@ -1,6 +1,6 @@
 {
   "name": "afdian-sponsor-manage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "爱发电赞助者管理服务",
   "egg": {
     "typescript": true,

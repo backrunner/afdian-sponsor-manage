@@ -106,7 +106,7 @@ export default class AfdianManageService extends Service {
       updateOnDuplicate: ['user_id'],
     });
   }
-  // 获得当月发电赞助者（不含长期）
+  // 获得月发电赞助者（含长期）
   async getMonthSponsors(month: number): Promise<SponsorInfo[]> {
     const { ctx } = this;
     const now = moment();
@@ -136,36 +136,6 @@ export default class AfdianManageService extends Service {
         }],
       }),
     );
-    ctx.app.cache.set('current-sponsor', sponsors);
-    return sponsors;
-  }
-  // 获得当前发电赞助者（含长期）
-  async getCurrentSponsors(): Promise<SponsorInfo[]> {
-    const { ctx } = this;
-    const cached = ctx.app.cache.get('current-sponsors') as SponsorInfo[] | null;
-    if (cached) {
-      return cached;
-    }
-    const { ne } = ctx.app.Sequelize.Op;
-    const sponsors = transformResults<SponsorInfo>(
-      await ctx.model.Sponsor.findAll({
-        where: {
-          current_plan_id: {
-            [ne]: null,
-          },
-        },
-        raw: false,
-      }),
-    ).map((item) => {
-      const { last_pay_time } = item;
-      const start = moment().startOf('month').hour(0).minute(0).second(0).unix();
-      const end = moment().endOf('month').hour(23).minute(59).second(59).unix();
-      const current_month_pay = last_pay_time >= start && last_pay_time < end;
-      return {
-        ...item,
-        current_month_pay,
-      };
-    });
     ctx.app.cache.set('current-sponsor', sponsors);
     return sponsors;
   }

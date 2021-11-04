@@ -6,7 +6,9 @@ export default class AfdianManageController extends Controller {
   // 获取当前发电情况
   async getCurrentStatus() {
     const { ctx } = this;
-    const currentSponsors = await ctx.service.afdianManage.getCurrentSponsors();
+    const currentSponsors = await ctx.service.afdianManage.getMonthSponsors(
+      moment().month(),
+    );
     const lastMonthSponsors = await ctx.service.afdianManage.getMonthSponsors(
       moment().subtract(1, 'month').month(),
     );
