@@ -7,15 +7,22 @@ export default class AfdianManageController extends Controller {
   async getCurrentStatus() {
     const { ctx } = this;
     const currentSponsors = await ctx.service.afdianManage.getMonthSponsors(
+      moment().year(),
       moment().month(),
     );
+    const lastMonth = moment().subtract(1, 'month');
     const lastMonthSponsors = await ctx.service.afdianManage.getMonthSponsors(
-      moment().subtract(1, 'month').month(),
+      lastMonth.year(),
+      lastMonth.month(),
     );
     const lastMonthSum = await ctx.service.afdianManage.getMonthSum(
-      moment().subtract(1, 'month').month(),
+      lastMonth.year(),
+      lastMonth.month(),
     );
-    const currentMonthSum = await ctx.service.afdianManage.getMonthSum(moment().month());
+    const currentMonthSum = await ctx.service.afdianManage.getMonthSum(
+      moment().year(),
+      moment().month(),
+    );
     const totalSum = await ctx.service.afdianManage.getTotalSum();
     const { time: lastFetchSponsorTime } = JSON.parse(
       (await ctx.app.redis.get('last-fetch-sponsor-time')) || '{}',

@@ -4,8 +4,8 @@ import moment from 'moment';
 import { transformResult, transformResults } from '../../utils';
 
 const cacheKey = {
-  monthSum: (month: number) => `month-sum_${month}`,
-  monthSponsors: (month: number) => `month-sponsors_${month}`,
+  monthSum: (year: number, month: number) => `month-sum_${year}-${month}`,
+  monthSponsors: (year: number, month: number) => `month-sponsors_${year}-${month}`,
 };
 
 interface SponsorInfo {
@@ -22,15 +22,15 @@ interface SponsorInfo {
 
 export default class AfdianManageService extends Service {
   // 当月发电额（按可提取计算）
-  async getMonthSum(month: number): Promise<number> {
+  async getMonthSum(year: number, month: number): Promise<number> {
     const { ctx } = this;
     const now = moment();
-    const key = cacheKey.monthSum(month);
+    const key = cacheKey.monthSum(year, month);
     const cached = ctx.app.cache.get(key) as number | null;
     if (cached) {
       return cached;
     }
-    const diff = now.diff(moment().month(month), 'month');
+    const diff = now.diff(moment().year(year).month(month), 'month');
     if (diff < 0) {
       return 0;
     }
@@ -83,15 +83,15 @@ export default class AfdianManageService extends Service {
     const { ctx } = this;
     const { out_trade_no: tradeNo } = order;
     // e.g.: 202110122117524810199520801
-    const time = tradeNo.substr(0, 14);
+    const time = tradeNo.substring(0, 14);
     const payTime = moment(time, 'YYYYMMDDHHmmss').valueOf();
     const expireTime = moment(time, 'YYYYMMDDHHmmss')
-        .add(order.month - 1, 'month')
-        .endOf('month')
-        .hour(23)
-        .minute(59)
-        .second(59)
-        .unix();
+      .add(order.month - 1, 'month')
+      .endOf('month')
+      .hour(23)
+      .minute(59)
+      .second(59)
+      .unix();
     const transformed = {
       trade_no: tradeNo,
       user_id: order.user_id,
@@ -107,36 +107,44 @@ export default class AfdianManageService extends Service {
     });
   }
   // 获得月发电赞助者（含长期）
-  async getMonthSponsors(month: number): Promise<SponsorInfo[]> {
+  async getMonthSponsors(year: number, month: number): Promise<SponsorInfo[]> {
     const { ctx } = this;
     const now = moment();
-    const key = cacheKey.monthSponsors(month);
+    const key = cacheKey.monthSponsors(year, month);
     const cached = ctx.app.cache.get(key) as SponsorInfo[] | null;
     if (cached) {
       return cached;
     }
-    const diff = now.diff(moment().month(month), 'month');
+    const diff = now.diff(moment().year(year).month(month), 'month');
     if (diff < 0) {
       return [];
     }
     const { lte, gte } = ctx.app.Sequelize.Op;
-    const end = moment().subtract(diff, 'month').endOf('month').hour(23).minute(59).second(59).unix();
+    const end = moment()
+      .subtract(diff, 'month')
+      .endOf('month')
+      .hour(23)
+      .minute(59)
+      .second(59)
+      .unix();
     const sponsors = transformResults<SponsorInfo>(
       await ctx.model.Sponsor.findAll({
-        include: [{
-          model: ctx.model.Order,
-          where: {
-            expire_time: {
-              [gte]: end,
-            },
-            pay_time: {
-              [lte]: end,
+        include: [
+          {
+            model: ctx.model.Order,
+            where: {
+              expire_time: {
+                [gte]: end,
+              },
+              pay_time: {
+                [lte]: end,
+              },
             },
           },
-        }],
+        ],
       }),
     );
-    ctx.app.cache.set('current-sponsor', sponsors);
+    ctx.app.cache.set(key, sponsors);
     return sponsors;
   }
   // 获得所有赞助者（含历史）
