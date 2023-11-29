@@ -8,9 +8,9 @@ RUN apk --no-cache add curl
 
 RUN npm install
 
-RUN npm run tsc
-
 COPY . .
+
+RUN npm run tsc
 
 EXPOSE 3000
 
