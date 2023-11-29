@@ -1,9 +1,9 @@
 import type { Application } from 'egg';
 
 export default (app: Application) => {
-  const { STRING, BIGINT } = app.Sequelize;
+  const { STRING, BIGINT } = (app as any).Sequelize;
 
-  const Order: any = app.model.define('order', {
+  const Order: any = (app as any).model.define('order', {
     trade_no: {
       type: STRING,
       primaryKey: true,
@@ -32,7 +32,7 @@ export default (app: Application) => {
   });
 
   Order.associate = function () {
-    app.model.Order.belongsTo(app.model.Sponsor, { foreignKey: 'user_id',  constraints: false });
+    (app as any).model.Order.belongsTo((app as any).model.Sponsor, { foreignKey: 'user_id',  constraints: false });
   }
 
   Order.sync({ alter: true });
