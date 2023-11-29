@@ -1,4 +1,4 @@
-import { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
+import type { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
 import { Service } from 'egg';
 import moment from 'moment';
 import { transformResult, transformResults } from '../../utils';
@@ -22,11 +22,11 @@ interface SponsorInfo {
 
 export default class AfdianManageService extends Service {
   // 当月发电额（按可提取计算）
-  async getMonthSum(year: number, month: number): Promise<number> {
+  public async getMonthSum(year: number, month: number): Promise<number> {
     const { ctx } = this;
     const now = moment();
     const key = cacheKey.monthSum(year, month);
-    const cached = ctx.app.cache.get(key) as number | null;
+    const cached = (ctx.app as any).cache.get(key) as number | null;
     if (cached) {
       return cached;
     }
@@ -34,7 +34,7 @@ export default class AfdianManageService extends Service {
     if (diff < 0) {
       return 0;
     }
-    const { lte, gte } = ctx.app.Sequelize.Op;
+    const { lte, gte } = (ctx.app as any).Sequelize.Op;
     const end = moment()
       .subtract(diff, 'month')
       .endOf('month')
@@ -44,7 +44,7 @@ export default class AfdianManageService extends Service {
       .unix();
     const res = transformResult<{ total: number }>(
       await ctx.model.Order.findOne({
-        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('amount')), 'total']],
+        attributes: [[(ctx.app as any).Sequelize.fn('sum', (ctx.app as any).Sequelize.col('amount')), 'total']],
         where: {
           expire_time: {
             [gte]: end,
@@ -59,27 +59,27 @@ export default class AfdianManageService extends Service {
     if (!res) {
       throw new Error('No result');
     }
-    ctx.app.cache.set(key, res.total);
+    (ctx.app as any).cache.set(key, res.total);
     return res.total;
   }
-  async getTotalSum(): Promise<number> {
+  public async getTotalSum(): Promise<number> {
     const { ctx } = this;
-    const cached = ctx.app.cache.get('total-sum') as number | null;
+    const cached = (ctx.app as any).cache.get('total-sum') as number | null;
     if (cached) {
       return cached;
     }
     const res = transformResult<{ total: number }>(
       await ctx.model.Order.findOne({
-        attributes: [[ctx.app.Sequelize.fn('sum', ctx.app.Sequelize.col('total_amount')), 'total']],
+        attributes: [[(ctx.app as any).Sequelize.fn('sum', (ctx.app as any).Sequelize.col('total_amount')), 'total']],
       }),
     );
     if (!res) {
       throw new Error('No result');
     }
-    ctx.app.cache.set('total-sum', res.total);
+    (ctx.app as any).cache.set('total-sum', res.total);
     return res.total;
   }
-  async updateOrder(order: AfdianOrderInfo) {
+  public async updateOrder(order: AfdianOrderInfo) {
     const { ctx } = this;
     const { out_trade_no: tradeNo } = order;
     // e.g.: 202110122117524810199520801
@@ -107,11 +107,11 @@ export default class AfdianManageService extends Service {
     });
   }
   // 获得月发电赞助者（含长期）
-  async getMonthSponsors(year: number, month: number): Promise<SponsorInfo[]> {
+  public async getMonthSponsors(year: number, month: number): Promise<SponsorInfo[]> {
     const { ctx } = this;
     const now = moment();
     const key = cacheKey.monthSponsors(year, month);
-    const cached = ctx.app.cache.get(key) as SponsorInfo[] | null;
+    const cached = (ctx.app as any).cache.get(key) as SponsorInfo[] | null;
     if (cached) {
       return cached;
     }
@@ -119,7 +119,7 @@ export default class AfdianManageService extends Service {
     if (diff < 0) {
       return [];
     }
-    const { lte, gte } = ctx.app.Sequelize.Op;
+    const { lte, gte } = (ctx.app as any).Sequelize.Op;
     const end = moment()
       .subtract(diff, 'month')
       .endOf('month')
@@ -144,18 +144,18 @@ export default class AfdianManageService extends Service {
         ],
       }),
     );
-    ctx.app.cache.set(key, sponsors);
+    (ctx.app as any).cache.set(key, sponsors);
     return sponsors;
   }
   // 获得所有赞助者（含历史）
-  async getAllSponsors(): Promise<SponsorInfo[]> {
+  public async getAllSponsors(): Promise<SponsorInfo[]> {
     const { ctx } = this;
-    const cached = ctx.app.cache.get('all-sponsors') as SponsorInfo[] | null;
+    const cached = (ctx.app as any).cache.get('all-sponsors') as SponsorInfo[] | null;
     if (cached) {
       return cached;
     }
     const sponsors = transformResults<SponsorInfo>(await ctx.model.Sponsor.findAll());
-    ctx.app.cache.set('all-sponsor', sponsors);
+    (ctx.app as any).cache.set('all-sponsor', sponsors);
     return sponsors;
   }
 }

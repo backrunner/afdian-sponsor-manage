@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { AfdianSponsorInfo, AfdianSponsorResponse } from 'afdian-api/dist/src/types/request';
+import type { AfdianSponsorInfo, AfdianSponsorResponse } from 'afdian-api/dist/src/types/request';
 import Afdian from 'afdian-api';
 import moment from 'moment';
 import { Subscription } from 'egg';
@@ -7,14 +7,14 @@ import { sleep } from '../../utils';
 import { taskIntervals } from '../../config/task';
 
 export default class FetchSponsors extends Subscription {
-  static get schedule() {
+  public static get schedule() {
     return {
       interval: taskIntervals.fetchSponsors,
       type: 'worker',
     };
   }
 
-  async updateSponsors(sponsors: AfdianSponsorInfo[]) {
+  public async updateSponsors(sponsors: AfdianSponsorInfo[]) {
     const { ctx } = this;
     const transformed = sponsors.map((item) => {
       const currentPayExpire = moment
@@ -45,7 +45,7 @@ export default class FetchSponsors extends Subscription {
   }
 
   // 全量获取赞助者（赞助者是动态数据，每次需要全量刷新）
-  async fetchSponsors(afdian: Afdian) {
+  public async fetchSponsors(afdian: Afdian) {
     // 先获取第一面的数据，请求总页数
     const firstRes = await afdian.querySponsor(1);
     const totalPage = firstRes.data.total_page;
@@ -68,7 +68,7 @@ export default class FetchSponsors extends Subscription {
     await this.updateSponsors(sponsors);
   }
 
-  async subscribe() {
+  public async subscribe() {
     const { ctx } = this;
     const { userId, token } = ctx.app.config.afdian;
     const afdian = new Afdian({
@@ -76,7 +76,7 @@ export default class FetchSponsors extends Subscription {
       token,
     });
     await this.fetchSponsors(afdian);
-    await ctx.app.redis.set(
+    await (ctx.app as any).redis.set(
       'last-fetch-sponsor-time',
       JSON.stringify({
         time: Date.now(),

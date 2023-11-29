@@ -1,4 +1,4 @@
-import { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
+import type { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
 
 export default (appInfo: EggAppInfo) => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

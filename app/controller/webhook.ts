@@ -1,4 +1,4 @@
-import { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
+import type { AfdianOrderInfo } from 'afdian-api/dist/src/types/request';
 import { Controller } from 'egg';
 
 export default class WebhookController extends Controller {

@@ -1,5 +1,6 @@
-import { Model } from "sequelize/types";
+import type { Model } from "sequelize/types";
 
+// eslint-disable-next-line no-promise-executor-return
 export const sleep = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
 
 export const transformResults = <T>(result: Array<Model<any, any>>): T[] => {

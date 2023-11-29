@@ -1,13 +1,12 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es2017",
+    "target": "ESNext",
     "module": "commonjs",
     "strict": true,
     "noImplicitAny": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "charset": "utf8",
     "allowJs": false,
     "pretty": true,
     "noEmitOnError": false,
@@ -23,9 +22,6 @@
     "importHelpers": true,
     "esModuleInterop": true
   },
-  "exclude": [
-    "app/public",
-    "app/views",
-    "node_modules*"
-  ]
+  "include": ["app/**/*.ts", "utils/**/*.ts", "config/**/*.ts"],
+  "exclude": ["node_modules"]
 }

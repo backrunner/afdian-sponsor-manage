@@ -1,10 +1,10 @@
-import { Application } from 'egg';
+import type { Application } from 'egg';
 import { INTEGER } from 'sequelize';
 
 export default (app: Application) => {
-  const { STRING, BIGINT } = app.Sequelize;
+  const { STRING, BIGINT } = (app as any).Sequelize;
 
-  const Sponsor: any = app.model.define('sponsor', {
+  const Sponsor: any = (app as any).model.define('sponsor', {
     user_id: {
       type: STRING,
       primaryKey: true,
@@ -42,7 +42,7 @@ export default (app: Application) => {
   });
 
   Sponsor.associate = function () {
-    app.model.Sponsor.hasMany(app.model.Order, { foreignKey: 'user_id', constraints: false });
+    (app as any).model.Sponsor.hasMany((app as any).model.Order, { foreignKey: 'user_id', constraints: false });
   }
 
   Sponsor.sync({ alter: true });
